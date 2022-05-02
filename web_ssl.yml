@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+
+  traefik:
+    image: traefik:v2.6
+    command: 
+      - "--api.insecure=true"           # The Web UI
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.ssl.acme.httpchallenge=true"
+      - "--certificatesresolvers.ssl.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.ssl.acme.email=admin@${MAIN_DOMAIN}"
+      - "--certificatesresolvers.ssl.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"                     # The Web UI
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./_certs:/letsencrypt
+
+  srv1:
+    image: traefik/whoami
+    hostname: srv1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.http_srv1.rule=Host(`srv1.${MAIN_DOMAIN}`)"
+      - "traefik.http.routers.http_srv1.entrypoints=web"
+      - "traefik.http.routers.https_srv1.entrypoints=websecure"
+      - "traefik.http.routers.https_srv1.tls.certresolver=ssl"
+      - "traefik.http.routers.https_srv1.rule=Host(`srv1.${MAIN_DOMAIN}`)"
+
+  srv2:
+    image: traefik/whoami
+    hostname: srv2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.http_srv2.rule=Host(`srv2.${MAIN_DOMAIN}`)"
+      - "traefik.http.routers.http_srv2.entrypoints=web"
+      - "traefik.http.routers.https_srv2.entrypoints=websecure"
+      - "traefik.http.routers.https_srv2.tls.certresolver=ssl"
+      - "traefik.http.routers.https_srv2.rule=Host(`srv2.${MAIN_DOMAIN}`)"
+
+  srv3:
+    image: traefik/whoami
+    hostname: srv3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.http_srv3.rule=Host(`srv3.${MAIN_DOMAIN}`)"
+      - "traefik.http.routers.http_srv3.entrypoints=web"
+      - "traefik.http.routers.https_srv3.entrypoints=websecure"
+      - "traefik.http.routers.https_srv3.tls.certresolver=ssl"
+      - "traefik.http.routers.https_srv3.rule=Host(`srv3.${MAIN_DOMAIN}`)"
